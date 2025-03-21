@@ -4,103 +4,296 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>进制转换工具</title>
-    <!-- 引入 Materialize CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-    <!-- 引入 Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             padding: 20px;
+            background-color: #f5f5f5;
         }
-        .result-box {
+        .container {
+            max-width: 800px;
+            padding: 0;  /* 移除容器的内边距 */
+        }
+        .page-container {
+            min-height: 400px;  /* 增加最小高度 */
+            height: auto;
+            position: relative;
+            overflow: visible; /* 改为visible允许内容溢出 */
+            margin: 20px 0;  /* 增加上下间距 */
+            padding: 0;      /* 移除卡片的内边距 */
+        }
+        .page {
+            position: absolute;
+            width: 100%;
+            min-height: 100%;   /* 确保页面至少和容器一样高 */
+            height: auto;       /* 自适应高度 */
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            padding: 20px;     /* 减小内边距 */
+            visibility: hidden; /* 默认隐藏 */
+            opacity: 0; /* 默认透明 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 改为从上往下布局 */
+        }
+        .page.active {
+            visibility: visible; /* 激活时可见 */
+            opacity: 1; /* 激活时不透明 */
+            display: flex; /* 只有激活的页面显示 */
+            transform: translateX(0);
+        }
+        .page.left {
+            transform: translateX(-100%);
+        }
+        .page.right {
+            transform: translateX(100%);
+        }
+        .base-btn {
+            margin: 10px;
+            min-width: 100px;
+        }
+        .footer {
             margin-top: 20px;
+            text-align: center;
+            color: #666;
         }
-        .card.selected {
-            border: 2px solid #6a1b9a; /* 紫色高亮 */
-            box-shadow: 0 4px 8px rgba(106, 27, 154, 0.5);
+        .result-container {
+            word-break: break-all;
+            margin: 20px 0;
         }
-        .modal {
-            animation: fadeIn 0.3s ease-out;
+        .nav-btn {
+            margin: 10px;
         }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
+        @media only screen and (max-width: 600px) {
+            .base-btn {
+                margin: 5px;
+                min-width: 80px;
             }
-            to {
-                opacity: 1;
-                transform: scale(1);
+            .button-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
             }
+            .nav-btn {
+                margin: 5px 0;
+            }
+        }
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        /* 页面内容样式优化 */
+        .section {
+            width: 100%;
+            max-width: 600px;  /* 限制内容最大宽度 */
+            margin: 0 auto;    /* 水平居中 */
+        }
+        
+        .base-buttons, .target-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;        /* 增加按钮间距 */
+            margin: 20px 0;   /* 增加上下间距 */
+        }
+        
+        .card-panel {
+            margin: 20px 0;
+            padding: 24px;    /* 增加结果显示区域的内边距 */
+        }
+        
+        /* 移动端适配优化 */
+        @media only screen and (max-width: 600px) {
+            .page {
+                padding: 20px;  /* 移动端减小内边距 */
+            }
+            
+            .base-buttons, .target-buttons {
+                gap: 10px;
+            }
+            
+            .card-panel {
+                padding: 16px;
+            }
+        }
+        .container > div:first-child {
+            background-color: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 
+                        0 3px 1px -2px rgba(0,0,0,0.12), 
+                        0 1px 5px 0 rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+
+        /* 调整第三页样式 */
+        #page3-basic, #page3-advanced {
+            min-height: fit-content;
+            height: auto;
+            overflow: visible;
+        }
+
+        .section {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        /* 调整按钮容器样式 */
+        .base-buttons, .target-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        /* 按钮样式优化 */
+        .base-btn {
+            margin: 5px;
+            min-width: 90px;
+        }
+
+        /* 移动端适配优化 */
+        @media only screen and (max-width: 600px) {
+            .page {
+                padding: 15px;
+            }
+            .section {
+                padding: 0 5px;
+            }
+        }
+        .base-btn.selected, .target-btn.selected {
+            background-color: #6a1b9a; /* 深紫色 */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h4 class="center-align">进制转换工具</h4>
-        <div class="card">
-            <div class="card-content">
-                <span class="card-title">选择操作</span>
-                <form id="conversionForm">
-                    <div class="input-field">
-                        <select id="operationChoice">
-                            <option value="1" selected>基础进制转换 (2, 8, 10, 16)</option>
-                            <option value="2">进阶进制转换 (2-62)</option>
-                        </select>
-                        <label>操作类型</label>
-                    </div>
+        <div class="card page-container">
+            <!-- 第一页 - 欢迎页 -->
+            <div class="page active" id="page1">
+                <h3 class="center-align">进制转换工具</h3>
+                <p class="center-align">简单高效的进制转换解决方案</p>
+                <button class="btn-large waves-effect waves-light purple" onclick="nextPage(1)">
+                    开始使用
+                    <i class="material-icons right">arrow_forward</i>
+                </button>
+            </div>
 
-                    <!-- 基础进制选择卡片 -->
-                    <div id="basicBases" class="row" style="display: none;">
-                        <div class="col s3">
-                            <div class="card base-card" data-base="2">
-                                <div class="card-content center-align">
-                                    <span class="card-title">二进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="8">
-                                <div class="card-content center-align">
-                                    <span class="card-title">八进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="10">
-                                <div class="card-content center-align">
-                                    <span class="card-title">十进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="16">
-                                <div class="card-content center-align">
-                                    <span class="card-title">十六进制</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="input-field">
-                        <input id="baseTo" type="number" min="2" max="62" required>
-                        <label for="baseTo">输入目标进制</label>
-                    </div>
-
-                    <div class="input-field">
-                        <input id="inputNumber" type="text" required>
-                        <label for="inputNumber">输入数字</label>
-                    </div>
-
-                    <button class="btn waves-effect waves-light purple" type="submit">转换
-                        <i class="material-icons right">autorenew</i>
+            <!-- 第二页 - 功能选择 -->
+            <div class="page right" id="page2">
+                <h4 class="center-align">选择转换模式</h4>
+                <div class="row center-align">
+                    <button class="btn-large waves-effect waves-light purple" onclick="selectMode('basic')">
+                        基础模式
+                        <i class="material-icons right">calculate</i>
                     </button>
-                </form>
+                    <button class="btn-large waves-effect waves-light purple" onclick="selectMode('advanced')">
+                        进阶模式
+                        <i class="material-icons right">functions</i>
+                    </button>
+                </div>
+                <button class="btn waves-effect waves-light purple nav-btn" onclick="prevPage(2)">
+                    <i class="material-icons left">arrow_back</i>返回
+                </button>
+            </div>
+
+            <!-- 第三页 - 基础模式 -->
+            <div class="page right" id="page3-basic">
+                <h4 class="center-align">基础进制转换</h4>
+                <div class="section" style="width: 100%;">
+                    <h6>原始进制：</h6>
+                    <div class="base-buttons">
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="2">二进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="8">八进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="10">十进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="16">十六进制</button>
+                    </div>
+                    <h6>目标进制：</h6>
+                    <div class="target-buttons">
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="2">二进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="8">八进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="10">十进制</button>
+                        <button class="btn waves-effect waves-light purple base-btn" data-base="16">十六进制</button>
+                    </div>
+                    <div class="input-field">
+                        <input id="basicInput" type="text" required>
+                        <label for="basicInput">输入数字</label>
+                    </div>
+                    <div class="center-align" style="margin-top: 20px;">
+                        <button class="btn waves-effect waves-light purple" onclick="convert('basic')">
+                            转换
+                            <i class="material-icons right">send</i>
+                        </button>
+                        <button class="btn waves-effect waves-light purple nav-btn" onclick="prevPage(3)">
+                            <i class="material-icons left">arrow_back</i>返回
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第三页 - 进阶模式 -->
+            <div class="page right" id="page3-advanced">
+                <h4 class="center-align">进阶进制转换</h4>
+                <div class="row" style="width: 100%;">
+                    <div class="input-field col s12">
+                        <input id="advancedBaseFrom" type="number" min="2" max="62" required>
+                        <label for="advancedBaseFrom">源进制 (2-62)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input id="advancedBaseTo" type="number" min="2" max="62" required>
+                        <label for="advancedBaseTo">目标进制 (2-62)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input id="advancedInput" type="text" required>
+                        <label for="advancedInput">输入数字</label>
+                    </div>
+                    <div class="center-align" style="margin-top: 20px;">
+                        <button class="btn waves-effect waves-light purple" onclick="convert('advanced')">
+                            转换
+                            <i class="material-icons right">send</i>
+                        </button>
+                        <button class="btn waves-effect waves-light purple nav-btn" onclick="prevPage(3)">
+                            <i class="material-icons left">arrow_back</i>返回
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第四页 - 结果页 -->
+            <div class="page right" id="page4">
+                <h4 class="center-align">转换结果</h4>
+                <div class="result-container">
+                    <p id="conversionDetails"></p>
+                    <div class="card-panel">
+                        <span id="result">结果将在这里显示</span>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button class="btn waves-effect waves-light purple" onclick="copyResult()">
+                        复制结果
+                        <i class="material-icons right">content_copy</i>
+                    </button>
+                    <button class="btn waves-effect waves-light purple" onclick="goToPage(2)">
+                        重新选择
+                        <i class="material-icons right">refresh</i>
+                    </button>
+                </div>
+                <button class="btn waves-effect waves-light purple nav-btn" onclick="prevPage(4)">
+                    <i class="material-icons left">arrow_back</i>返回
+                </button>
             </div>
         </div>
 
-        <div class="result-box">
-            <h5>转换结果:</h5>
-            <p id="result" class="flow-text">结果将在这里显示</p>
+        <div class="footer">
+            <p>开发者: <a href="https://github.com/creeper233w" target="_blank">creeper233w</a> | 
+               <a href="/">返回主页</a></p>
         </div>
     </div>
 
@@ -115,7 +308,6 @@
         </div>
     </div>
 
-    <!-- 引入 Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
         // 初始化 Materialize 组件
@@ -124,24 +316,36 @@
             M.Modal.init(document.querySelectorAll('.modal'));
         });
 
-        // 切换基础进制选择卡片
+        // 切换基础/高级模式
         document.getElementById('operationChoice').addEventListener('change', function() {
             const choice = parseInt(this.value);
             const basicBases = document.getElementById('basicBases');
+            const advancedBaseFrom = document.getElementById('advancedBaseFrom');
+            
             if (choice === 1) {
                 basicBases.style.display = 'flex';
+                advancedBaseFrom.style.display = 'none';
+                document.getElementById('baseFrom').value = '10'; // 默认十进制
+                document.querySelector('.base-card[data-base="10"]').classList.add('selected');
             } else {
                 basicBases.style.display = 'none';
+                advancedBaseFrom.style.display = 'block';
+                document.getElementById('baseFromInput').value = '';
             }
         });
 
-        // 高亮选中的卡片
+        // 高亮选中的卡片并设置源进制
         document.querySelectorAll('.base-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.base-card').forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 document.getElementById('baseFrom').value = this.dataset.base;
             });
+        });
+
+        // 源进制输入框变化时更新隐藏字段
+        document.getElementById('baseFromInput').addEventListener('change', function() {
+            document.getElementById('baseFrom').value = this.value;
         });
 
         // 进制转换逻辑
@@ -194,11 +398,25 @@
                 const baseTo = parseInt(document.getElementById('baseTo').value);
                 const inputNumber = document.getElementById('inputNumber').value;
 
-                if (choice === 1 && ![2, 8, 10, 16].includes(baseFrom)) {
-                    throw new Error("原始进制必须是 2, 8, 10 或 16！");
+                // 验证输入
+                if (!baseFrom || !baseTo) {
+                    throw new Error("请指定源进制和目标进制！");
                 }
-                if (choice === 1 && ![2, 8, 10, 16].includes(baseTo)) {
-                    throw new Error("目标进制必须是 2, 8, 10 或 16！");
+
+                if (choice === 1) {
+                    if (![2, 8, 10, 16].includes(baseFrom)) {
+                        throw new Error("基础模式下，源进制必须是 2, 8, 10 或 16！");
+                    }
+                    if (![2, 8, 10, 16].includes(baseTo)) {
+                        throw new Error("基础模式下，目标进制必须是 2, 8, 10 或 16！");
+                    }
+                } else {
+                    if (baseFrom < 2 || baseFrom > 62) {
+                        throw new Error("源进制必须在2到62之间！");
+                    }
+                    if (baseTo < 2 || baseTo > 62) {
+                        throw new Error("目标进制必须在2到62之间！");
+                    }
                 }
 
                 const decimalValue = baseToDecimal(inputNumber, baseFrom);
@@ -210,6 +428,168 @@
                 document.getElementById('errorMessage').textContent = error.message;
                 modal.open();
             }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            M.Modal.init(document.querySelectorAll('.modal'));
+            initializeButtons();
+        });
+
+        // 页面切换控制
+        let currentPage = 1;
+        function nextPage(current) {
+            const currentEl = document.getElementById(`page${current}`);
+            const nextEl = document.getElementById(`page${current + 1}`);
+            
+            currentEl.classList.remove('active');
+            currentEl.classList.add('left');
+            nextEl.classList.remove('right');
+            nextEl.classList.add('active');
+            currentPage = current + 1;
+        }
+
+        function prevPage(current) {
+            let currentEl, prevEl;
+            
+            // 处理基础模式和进阶模式的特殊情况
+            if (current === 3) {
+                currentEl = document.getElementById('page3-basic').classList.contains('active') 
+                    ? document.getElementById('page3-basic') 
+                    : document.getElementById('page3-advanced');
+                prevEl = document.getElementById('page2');
+            } else {
+                currentEl = document.getElementById(`page${current}`);
+                prevEl = document.getElementById(`page${current - 1}`);
+            }
+            
+            currentEl.classList.remove('active');
+            currentEl.classList.add('right');
+            prevEl.classList.remove('left');
+            prevEl.classList.add('active');
+
+            // 修复：更新 currentPage 变量
+            currentPage = current - 1;
+        }
+
+        function goToPage(pageNum) {
+            const currentEl = document.getElementById(`page${currentPage}`);
+            const targetEl = document.getElementById(`page${pageNum}`);
+            
+            if (currentPage < pageNum) {
+                currentEl.classList.add('left');
+                targetEl.classList.remove('right');
+            } else {
+                currentEl.classList.add('right');
+                targetEl.classList.remove('left');
+            }
+            
+            currentEl.classList.remove('active');
+            targetEl.classList.add('active');
+            currentPage = pageNum;
+        }
+
+        // 模式选择
+        function selectMode(mode) {
+            const targetPage = mode === 'basic' ? '3-basic' : '3-advanced';
+            const currentEl = document.getElementById('page2');
+            const nextEl = document.getElementById(`page${targetPage}`);
+            
+            currentEl.classList.remove('active');
+            currentEl.classList.add('left');
+            nextEl.classList.remove('right');
+            nextEl.classList.add('active');
+            currentPage = 3;
+        }
+
+        // 按钮初始化
+        function initializeButtons() {
+            document.querySelectorAll('.base-buttons .base-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.base-buttons .base-btn').forEach(b => 
+                        b.classList.remove('darken-3'));
+                    this.classList.add('darken-3');
+                });
+            });
+
+            document.querySelectorAll('.target-buttons .base-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.target-buttons .base-btn').forEach(b => 
+                        b.classList.remove('darken-3'));
+                    this.classList.add('darken-3');
+                });
+            });
+        }
+
+        // 进制转换逻辑
+        // ...existing conversion functions...
+
+        // 转换处理
+        function convert(mode) {
+            try {
+                let fromBase, toBase, input, result;
+                
+                if (mode === 'basic') {
+                    fromBase = parseInt(document.querySelector('.base-buttons .darken-3').dataset.base);
+                    toBase = parseInt(document.querySelector('.target-buttons .darken-3').dataset.base);
+                    input = document.getElementById('basicInput').value;
+                } else {
+                    fromBase = parseInt(document.getElementById('advancedBaseFrom').value);
+                    toBase = parseInt(document.getElementById('advancedBaseTo').value);
+                    input = document.getElementById('advancedInput').value;
+                }
+
+                const decimalValue = baseToDecimal(input, fromBase);
+                result = decimalToBase(decimalValue, toBase);
+
+                document.getElementById('conversionDetails').textContent = 
+                    `${input} (${fromBase}进制) → ${result} (${toBase}进制)`;
+                document.getElementById('result').textContent = result;
+
+                const currentEl = document.getElementById(`page3-${mode}`);
+                const nextEl = document.getElementById('page4');
+                
+                currentEl.classList.remove('active');
+                currentEl.classList.add('left');
+                nextEl.classList.remove('right');
+                nextEl.classList.add('active');
+                currentPage = 4;
+            } catch (error) {
+                const modal = M.Modal.getInstance(document.getElementById('errorModal'));
+                document.getElementById('errorMessage').textContent = error.message;
+                modal.open();
+            }
+        }
+
+        // 复制结果
+        function copyResult() {
+            const result = document.getElementById('result').textContent;
+            navigator.clipboard.writeText(result).then(() => {
+                M.toast({html: '已复制到剪贴板', classes: 'rounded'});
+            }).catch(() => {
+                M.toast({html: '复制失败', classes: 'rounded red'});
+            });
+        }
+
+        // 初始化按钮点击事件
+        document.querySelectorAll('.base-buttons .base-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除其他按钮的选中状态
+                document.querySelectorAll('.base-buttons .base-btn').forEach(b => 
+                    b.classList.remove('selected'));
+                // 添加当前按钮的选中状态
+                this.classList.add('selected');
+            });
+        });
+
+        document.querySelectorAll('.target-buttons .base-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除其他按钮的选中状态
+                document.querySelectorAll('.target-buttons .base-btn').forEach(b => 
+                    b.classList.remove('selected'));
+                // 添加当前按钮的选中状态
+                this.classList.add('selected');
+            });
         });
     </script>
 </body>
