@@ -1,232 +1,381 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-CN" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>进制转换工具</title>
-    <!-- 引入 Materialize CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-    <!-- 引入 Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>GCD & LCM 计算器</title>
     <style>
         body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        .result-box {
+        .container {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 150px;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        button {
+            padding: 10px 20px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        #steps {
             margin-top: 20px;
+            border: 1px solid var(--border-color);
+            padding: 10px;
         }
-        .card.selected {
-            border: 2px solid #6a1b9a; /* 紫色高亮 */
-            box-shadow: 0 4px 8px rgba(106, 27, 154, 0.5);
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
         }
-        .modal {
-            animation: fadeIn 0.3s ease-out;
+        :root[data-theme="light"] {
+            --bg-color: #f5f5f5;
+            --container-bg: white;
+            --text-color: #333;
+            --border-color: #ddd;
+            --button-bg: #4CAF50;
+            --button-hover: #45a049;
         }
-        @keyframes fadeIn {
+        :root[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --border-color: #404040;
+            --button-bg: #45a049;
+            --button-hover: #3d8b40;
+        }
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+        .step-row {
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: slideIn 0.5s forwards;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .number-box {
+            padding: 5px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--container-bg);
+            min-width: 60px;
+            text-align: center;
+            font-family: 'Consolas', monospace;
+        }
+        .number-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .divider {
+            width: 2px;
+            height: 30px;
+            background-color: var(--border-color);
+            margin: 0 10px;
+        }
+        .factor-box {
+            padding: 5px 10px;
+            border: 2px solid var(--button-bg);
+            border-radius: 4px;
+            background-color: var(--button-bg);
+            color: white;
+            min-width: 40px;
+            text-align: center;
+        }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .step-row:nth-child(n) {
+            animation-delay: calc(0.2s * var(--index));
+        }
+        .result-row {
+            justify-content: flex-end;
+            padding-right: 50px;
+        }
+        
+        .result-label {
+            font-size: 1.1em;
+            color: var(--text-color);
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideInLabel 0.5s forwards;
+            animation-delay: calc(0.2s * var(--index));
+        }
+
+        .result-value {
+            opacity: 0;
+            transform: scale(0.8);
+            animation: popIn 0.5s forwards;
+            animation-delay: calc(0.2s * var(--index) + 0.3s);
+        }
+
+        @keyframes slideInLabel {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes popIn {
             from {
                 opacity: 0;
                 transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.1);
             }
             to {
                 opacity: 1;
                 transform: scale(1);
             }
         }
+
+        /* 响应式设计 */
+        @media screen and (max-width: 768px) {
+            body {
+                margin: 10px;
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .input-group {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            input {
+                width: 80%;
+                max-width: 300px;
+            }
+
+            button {
+                width: 80%;
+                max-width: 300px;
+            }
+
+            .step-row {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .number-block {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                text-align: center;
+            }
+
+            .result-row {
+                padding-right: 0;
+                justify-content: center;
+                gap: 15px;
+            }
+        }
+
+        /* 更小屏幕的优化 */
+        @media screen and (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .number-box {
+                min-width: 45px;
+                padding: 5px 10px;
+            }
+
+            .factor-box {
+                min-width: 30px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+        }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换深浅模式">
+        🌓
+    </button>
     <div class="container">
-        <h4 class="center-align">进制转换工具</h4>
-        <div class="card">
-            <div class="card-content">
-                <span class="card-title">选择操作</span>
-                <form id="conversionForm">
-                    <div class="input-field">
-                        <select id="operationChoice">
-                            <option value="1" selected>基础进制转换 (2, 8, 10, 16)</option>
-                            <option value="2">进阶进制转换 (2-62)</option>
-                        </select>
-                        <label>操作类型</label>
-                    </div>
-
-                    <!-- 基础进制选择卡片 -->
-                    <div id="basicBases" class="row">
-                        <div class="col s3">
-                            <div class="card base-card" data-base="2">
-                                <div class="card-content center-align">
-                                    <span class="card-title">二进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="8">
-                                <div class="card-content center-align">
-                                    <span class="card-title">八进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="10">
-                                <div class="card-content center-align">
-                                    <span class="card-title">十进制</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col s3">
-                            <div class="card base-card" data-base="16">
-                                <div class="card-content center-align">
-                                    <span class="card-title">十六进制</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 进阶进制选择输入框 -->
-                    <div id="advancedBases" class="row" style="display: none;">
-                        <div class="input-field col s6">
-                            <input id="baseFromAdvanced" type="number" min="2" max="62" required>
-                            <label for="baseFromAdvanced">输入原始进制</label>
-                        </div>
-                    </div>
-
-                    <div class="input-field">
-                        <input id="baseTo" type="number" min="2" max="62" required>
-                        <label for="baseTo">输入目标进制</label>
-                    </div>
-
-                    <div class="input-field">
-                        <input id="inputNumber" type="text" required>
-                        <label for="inputNumber">输入数字</label>
-                    </div>
-
-                    <input id="baseFrom" type="hidden" value="10">
-
-                    <button class="btn waves-effect waves-light purple" type="submit">转换
-                        <i class="material-icons right">autorenew</i>
-                    </button>
-                </form>
-            </div>
+        <h1>最大公约数和最小公倍数计算器</h1>
+        <div class="input-group">
+            <input type="number" id="num1" placeholder="输入第一个数">
+            <input type="number" id="num2" placeholder="输入第二个数">
+            <button onclick="calculate()">计算</button>
         </div>
-
-        <div class="result-box">
-            <h5>转换结果:</h5>
-            <p id="result" class="flow-text">结果将在这里显示</p>
-        </div>
+        <div id="steps"></div>
+        <div id="result"></div>
     </div>
 
-    <!-- 错误弹窗 -->
-    <div id="errorModal" class="modal">
-        <div class="modal-content">
-            <h4>错误</h4>
-            <p id="errorMessage"></p>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-close btn purple">关闭</button>
-        </div>
-    </div>
-
-    <!-- 引入 Materialize JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-        // 初始化 Materialize 组件
-        document.addEventListener('DOMContentLoaded', function() {
-            M.FormSelect.init(document.querySelectorAll('select'));
-            M.Modal.init(document.querySelectorAll('.modal'));
-        });
-
-        // 切换基础进制选择卡片
-        document.getElementById('operationChoice').addEventListener('change', function() {
-            const choice = parseInt(this.value);
-            const basicBases = document.getElementById('basicBases');
-            const advancedBases = document.getElementById('advancedBases');
-            if (choice === 1) {
-                basicBases.style.display = 'flex';
-                advancedBases.style.display = 'none';
-            } else {
-                basicBases.style.display = 'none';
-                advancedBases.style.display = 'flex';
-            }
-        });
-
-        // 高亮选中的卡片
-        document.querySelectorAll('.base-card').forEach(card => {
-            card.addEventListener('click', function() {
-                document.querySelectorAll('.base-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                document.getElementById('baseFrom').value = this.dataset.base;
-            });
-        });
-
-        // 进制转换逻辑
-        function decimalToBase(dec, base) {
-            if (base < 2 || base > 62) {
-                throw new Error("目标进制必须在2到62之间！");
+        function calculate() {
+            let a = parseInt(document.getElementById('num1').value);
+            let b = parseInt(document.getElementById('num2').value);
+            
+            if(isNaN(a) || isNaN(b) || a < 0 || b < 0) {  // 修改这里，允许0
+                alert('请输入有效的自然数！');
+                return;
             }
 
-            const digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            let result = "";
-            let isNegative = dec < 0;
-            dec = Math.abs(dec);
-
-            while (dec !== 0) {
-                result = digits[dec % base] + result;
-                dec = Math.floor(dec / base);
+            let stepsDiv = document.getElementById('steps');
+            let resultDiv = document.getElementById('result');
+            stepsDiv.innerHTML = '<h3>计算步骤：</h3>';
+            let stepIndex = 0;
+            
+            // 确保 a 是较大的数
+            if(a < b) {
+                [a, b] = [b, a];
             }
 
-            return (isNegative ? "-" : "") + (result || "0");
-        }
+            let originalA = a;
+            let originalB = b;
+            let factors = [];
+            let factTemp = 2;
 
-        function baseToDecimal(num, base) {
-            if (base < 2 || base > 62) {
-                throw new Error("原始进制必须在2到62之间！");
-            }
+            function addStepRow(factor, num1, num2, isResult = false) {
+                const row = document.createElement('div');
+                row.className = 'step-row';
+                row.style.setProperty('--index', stepIndex++);
 
-            const digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            let result = 0;
-            let isNegative = num[0] === '-';
-            let startIndex = isNegative ? 1 : 0;
-
-            for (let i = startIndex; i < num.length; i++) {
-                let value = digits.indexOf(num[i]);
-                if (value === -1 || value >= base) {
-                    throw new Error("输入的数字不符合指定进制！");
-                }
-                result = result * base + value;
-            }
-
-            return isNegative ? -result : result;
-        }
-
-        // 表单提交事件
-        document.getElementById('conversionForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            try {
-                const choice = parseInt(document.getElementById('operationChoice').value);
-                const baseFrom = choice === 1 ? parseInt(document.getElementById('baseFrom').value) : parseInt(document.getElementById('baseFromAdvanced').value);
-                const baseTo = parseInt(document.getElementById('baseTo').value);
-                const inputNumber = document.getElementById('inputNumber').value;
-
-                if (choice === 1 && ![2, 8, 10, 16].includes(baseFrom)) {
-                    throw new Error("原始进制必须是 2, 8, 10 或 16！");
-                }
-                if (choice === 1 && ![2, 8, 10, 16].includes(baseTo)) {
-                    throw new Error("目标进制必须是 2, 8, 10 或 16！");
-                }
-
-                const decimalValue = baseToDecimal(inputNumber, baseFrom);
-                const result = decimalToBase(decimalValue, baseTo);
-
-                document.getElementById('result').textContent = result;
-            } catch (error) {
-                const modal = M.Modal.getInstance(document.getElementById('errorModal'));
-                if (modal) {
-                    document.getElementById('errorMessage').textContent = error.message;
-                    modal.open();
+                if (!isResult) {
+                    row.innerHTML = `
+                        <div class="factor-box">${factor}</div>
+                        <div class="number-block">
+                            <div class="number-box">${num1}</div>
+                            <div class="number-box">${num2}</div>
+                        </div>
+                    `;
                 } else {
-                    alert(error.message);
+                    row.innerHTML = `
+                        <div class="factor-box" style="visibility: hidden;">0</div>
+                        <div class="number-block">
+                            <div class="number-box">${num1}</div>
+                            <div class="number-box">${num2}</div>
+                        </div>
+                    `;
                 }
+                stepsDiv.appendChild(row);
+                
+                // 添加自动滚动
+                setTimeout(() => {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, stepIndex * 200); // 与动画延迟同步
             }
+
+            while(factTemp <= a/2 + 1) {
+                if(a % factTemp === 0 && b % factTemp === 0) {
+                    addStepRow(factTemp, a, b);
+                    a /= factTemp;
+                    b /= factTemp;
+                    factors.push(factTemp);
+                    factTemp = 1;
+                }
+                factTemp++;
+            }
+
+            addStepRow('', a, b, true);
+
+            let gcd = factors.reduce((acc, curr) => acc * curr, 1);
+            let lcm = (originalA * originalB) / gcd;
+
+            resultDiv.innerHTML = '';
+            const resultContent = [
+                { label: '最大公约数', value: gcd },
+                { label: '最小公倍数', value: lcm }
+            ];
+
+            resultContent.forEach((item, index) => {
+                const p = document.createElement('div');
+                p.className = 'step-row result-row';
+                p.style.setProperty('--index', stepIndex + index);
+                p.innerHTML = `
+                    <div class="result-label">${item.label}：</div>
+                    <div class="number-box result-value">${item.value}</div>
+                `;
+                resultDiv.appendChild(p);
+            });
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.body.style.opacity = '0';
+            
+            setTimeout(() => {
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                document.body.style.opacity = '1';
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.style.opacity = '1';
         });
     </script>
 </body>
