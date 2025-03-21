@@ -5,178 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCD & LCM 计算器</title>
     <style>
+        :root[data-theme="light"] {
+            --bg-color: #f8f6fc;
+            --container-bg: white;
+            --text-color: #1d1b20;
+            --border-color: #e6e0e9;
+            --button-bg: #6750a4;
+            --button-hover: #7c6db8;
+            --input-focus: #d0bcff;
+            --shadow-color: rgba(103, 80, 164, 0.1);
+        }
+        
+        :root[data-theme="dark"] {
+            --bg-color: #1d1b20;
+            --container-bg: #2b2930;
+            --text-color: #e6e0e9;
+            --border-color: #49454f;
+            --button-bg: #d0bcff;
+            --button-hover: #b69df8;
+            --input-focus: #6750a4;
+            --shadow-color: rgba(208, 188, 255, 0.1);
+        }
+
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
             background-color: var(--bg-color);
             color: var(--text-color);
+            line-height: 1.5;
         }
+
         .container {
             background-color: var(--container-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 24px;
+            border-radius: 28px;
+            box-shadow: 0 4px 8px var(--shadow-color);
         }
+
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
+
         input {
-            padding: 8px;
-            margin: 5px;
-            width: 150px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             background-color: var(--container-bg);
             color: var(--text-color);
-            border: 1px solid var(--border-color);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            width: 150px;
         }
+
+        input:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 2px var(--input-focus);
+        }
+
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: var(--button-bg);
-            color: white;
+            color: var(--theme-color, white);
             border: none;
-            border-radius: 4px;
+            border-radius: 100px;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
+
         button:hover {
             background-color: var(--button-hover);
+            transform: translateY(-1px);
         }
-        #steps {
-            margin-top: 20px;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-        }
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        :root[data-theme="light"] {
-            --bg-color: #f5f5f5;
-            --container-bg: white;
-            --text-color: #333;
-            --border-color: #ddd;
-            --button-bg: #4CAF50;
-            --button-hover: #45a049;
-        }
-        :root[data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --container-bg: #2d2d2d;
-            --text-color: #e0e0e0;
-            --border-color: #404040;
-            --button-bg: #45a049;
-            --button-hover: #3d8b40;
-        }
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+
         .theme-toggle {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 10px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            height: 48px;
+            border-radius: 24px;
             background-color: var(--container-bg);
+            box-shadow: 0 2px 4px var(--shadow-color);
             border: 1px solid var(--border-color);
-        }
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-        .step-row {
-            opacity: 0;
-            transform: translateY(-20px);
-            animation: slideIn 0.5s forwards;
-            margin: 10px 0;
+            color: var(--text-color);
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            padding: 0 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            min-width: 48px;
+            max-width: 48px;
         }
+
+        .theme-toggle:hover {
+            max-width: 200px;
+        }
+
+        .theme-icon::before {
+            content: '🌞';
+        }
+
+        .theme-text {
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-text {
+            opacity: 1;
+        }
+
         .number-box {
-            padding: 5px 15px;
+            padding: 8px 16px;
             border: 2px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 12px;
             background-color: var(--container-bg);
             min-width: 60px;
             text-align: center;
             font-family: 'Consolas', monospace;
+            font-size: 16px;
         }
-        .number-block {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .divider {
-            width: 2px;
-            height: 30px;
-            background-color: var(--border-color);
-            margin: 0 10px;
-        }
+
         .factor-box {
-            padding: 5px 10px;
-            border: 2px solid var(--button-bg);
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 12px;
             background-color: var(--button-bg);
-            color: white;
+            color: var(--theme-color, white);
             min-width: 40px;
             text-align: center;
+            font-weight: 500;
         }
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .step-row:nth-child(n) {
-            animation-delay: calc(0.2s * var(--index));
-        }
-        .result-row {
-            justify-content: flex-end;
-            padding-right: 50px;
-        }
-        
-        .result-label {
-            font-size: 1.1em;
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
             color: var(--text-color);
-            opacity: 0;
-            transform: translateX(-20px);
-            animation: slideInLabel 0.5s forwards;
-            animation-delay: calc(0.2s * var(--index));
         }
 
-        .result-value {
-            opacity: 0;
-            transform: scale(0.8);
-            animation: popIn 0.5s forwards;
-            animation-delay: calc(0.2s * var(--index) + 0.3s);
+        .step-row {
+            margin: 16px 0;
+            padding: 12px;
+            border-radius: 16px;
+            background-color: var(--bg-color);
         }
 
-        @keyframes slideInLabel {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .result-row {
+            margin-top: 24px;
+            font-size: 18px;
+            font-weight: 500;
         }
 
-        @keyframes popIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+        /* 修改动画效果使其更平滑 */
+        .step-row, .result-row {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 响应式设计 */
+        /* 适配深色模式的文字颜色 */
+        :root[data-theme="dark"] button {
+            color: #1d1b20;
+        }
+
+        :root[data-theme="dark"] .factor-box {
+            color: #1d1b20;
+        }
+
+        /* 深色模式样式 */
+        :root[data-theme="dark"] .theme-icon::before {
+            content: '🌜';
+        }
+
+        /* 其余响应式设计代码保持不变 */
         @media screen and (max-width: 768px) {
             body {
                 margin: 10px;
@@ -217,8 +226,8 @@
             .theme-toggle {
                 top: 10px;
                 right: 10px;
-                width: 35px;
-                height: 35px;
+                height: 40px;
+                min-width: 40px;
             }
 
             h1 {
@@ -233,7 +242,6 @@
             }
         }
 
-        /* 更小屏幕的优化 */
         @media screen and (max-width: 480px) {
             .container {
                 padding: 10px;
@@ -252,11 +260,49 @@
                 font-size: 1.2em;
             }
         }
+
+        .step-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+            animation-delay: calc(var(--index) * 0.1s);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+            animation-delay: calc(var(--index) * 0.1s);
+        }
+
+        .number-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
     </style>
 </head>
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" title="切换深浅模式">
-        🌓
+        <span class="theme-icon"></span>
+        <span class="theme-text"></span>
     </button>
     <div class="container">
         <h1>最大公约数和最小公倍数计算器</h1>
@@ -358,10 +404,12 @@
             });
         }
 
+        // 修改 toggleTheme 函数
         function toggleTheme() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            const themeText = document.querySelector('.theme-text');
             
             document.body.style.opacity = '0';
             
@@ -369,13 +417,21 @@
                 html.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 document.body.style.opacity = '1';
+                
+                // 更新切换文本
+                themeText.textContent = newTheme === 'light' ? '切换至深色' : '切换至浅色';
             }, 300);
         }
 
+        // 添加到 DOMContentLoaded 事件监听器中
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.style.opacity = '1';
+            
+            // 初始化主题切换文本
+            const themeText = document.querySelector('.theme-text');
+            themeText.textContent = savedTheme === 'light' ? '切换至深色' : '切换至浅色';
         });
     </script>
 </body>
