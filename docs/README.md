@@ -2,4 +2,3 @@
 >单击下面的链接查看测试页面。
 
 # [Gcd&Lcm](https://creeper233w.github.io/pages/HandMakeGcdLcm.html)
-# [Base Convert](https://creeper233w.github.io/pages/BaseConvert.html)
